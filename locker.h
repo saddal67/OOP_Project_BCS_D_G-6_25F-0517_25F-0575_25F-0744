@@ -14,7 +14,7 @@ using namespace std;
 enum GameState { STATE_MENU, STATE_PLAYING, STATE_WON, STATE_LOST, STATE_EXIT };
 enum MenuChoice { MENU_NEW_GAME = 1, MENU_SCOREBOARD, MENU_ABOUT, MENU_RULES, MENU_EXIT };
 enum WordRow { WORD_1 = 0, WORD_2 = 1 };
-enum PenaltyType { PENALTY_NONE, PENALTY_TURN, PENALTY_WORD };sss
+enum PenaltyType { PENALTY_NONE, PENALTY_TURN, PENALTY_WORD };
 
 struct Tile {
     char tileLetter;
@@ -126,4 +126,382 @@ public:
     static void pause();
     static string today();
     static void makeDirectory(const string& name);
+};
+
+
+
+
+
+
+
+
+
+// ============================================================
+// MODULE 5: TileRack (raw DMA, deep copy)
+// Letters are kept sorted by board position.
+// ============================================================
+class TileRack {
+private:
+    Tile* tiles;
+    int* positions;
+    int capacity;
+    int count;
+public:
+    TileRack(int cap = 8);
+    TileRack(const TileRack& other);              // deep copy
+    TileRack& operator=(const TileRack& other);   // deep copy
+    ~TileRack();
+
+    void addTile(char letter, int position);      // throws RackFullException
+    void removeTile(char letter);                 // throws RackEmptyException
+    bool isFull() const;
+    bool isEmpty() const;
+    int getCount() const;
+    string toString() const;
+    void display() const;
+
+    // MODULE 11: merge two racks into one clue with a space between
+    TileRack operator+(const TileRack& other) const;
+    friend ostream& operator<<(ostream& os, const TileRack& r);
+};
+
+// ============================================================
+// MODULE 3 and 9: Character hierarchy
+// Character is abstract. display() is resolved at runtime.
+// ============================================================
+class Character {
+private:
+    bool isCulprit;        // set by GameEngine (friend)
+    bool interviewed;      // set by GameEngine (friend)
+protected:
+    string characterName;
+    string nationality;
+    string characterRole;
+public:
+    Character(const string& name, const string& role, const string& nat);
+    virtual ~Character();
+
+    virtual void display() const = 0;                 // pure virtual
+    virtual int requiredCredibility() const;          // interview gate
+    virtual Clue getClue() const;                     // letter carried by this person
+
+    string getName() const;
+    string getRole() const;
+    string getNationality() const;
+    bool getIsCulprit() const;
+    bool isInterviewed() const;
+
+    friend class GameEngine;                          // MODULE 11
+    friend ostream& operator<<(ostream& os, const Character& c);
+    friend istream& operator>>(istream& is, Character& c);
+};
+
+class Victim : public Character {
+private:
+    char letterClueChar;
+    int boardPosChar;
+    WordRow clueRowChar;
+public:
+    Victim(const string& name, const string& nat, char letter, int pos);
+    void display() const;
+    int requiredCredibility() const;
+    Clue getClue() const;
+};
+
+class Suspect : public Character {
+protected:
+    char letterClueChar;
+    int boardPosChar;
+    WordRow clueRowChar;
+public:
+    Suspect(const string& name, const string& role, const string& nat, char letter, int pos);
+    virtual ~Suspect() {}
+    Clue getClue() const;
+    // display() stays pure virtual, so Suspect is abstract too
+};
+
+// Virtual inheritance solves the diamond: Suspect exists once inside PA
+class BusinessRelations : virtual public Suspect {
+public:
+    BusinessRelations(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class CloseRelations : virtual public Suspect {
+public:
+    CloseRelations(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class Partner : public BusinessRelations {
+public:
+    Partner(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos),
+        BusinessRelations(name, role, nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 50
+};
+
+class PA : public BusinessRelations, public CloseRelations {
+public:
+    PA(const string& name, const string& nat, char letter, int pos)
+        : Suspect(name, "PA", nat, letter, pos),
+        BusinessRelations(name, "PA", nat, letter, pos),
+        CloseRelations(name, "PA", nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 35
+};
+
+class HouseHelp : public Suspect {
+public:
+    HouseHelp(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class Cook : public HouseHelp {
+public:
+    Cook(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Cook", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class Guard : public HouseHelp {
+public:
+    Guard(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Guard", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class Servant : public HouseHelp {
+public:
+    Servant(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Servant", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class OwnersChild : public CloseRelations {
+public:
+    OwnersChild(const string& name, const string& nat, char letter, int pos)
+        : Suspect(name, "Child", nat, letter, pos),
+        CloseRelations(name, "Child", nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 75
+};
+
+class Detective : public Character {
+private:
+    int credibility;
+    int turns;
+    TileRack rack1;          // letters for Word 1 (7)
+    TileRack rack2;          // letters for Word 2 (8)
+    string solved1;
+    string solved2;
+    void useTurn();          // only GameEngine increments turns
+    friend class GameEngine;
+public:
+    Detective(const string& name, int startCredibility);
+    void display() const;
+    void loseCredibility(int amount);
+    int getCredibility() const;
+    int getTurns() const;
+    TileRack& getRack(WordRow row);
+    void setSolved(WordRow row, const string& word);
+    bool isSolved(WordRow row) const;
+    string getSolved(WordRow row) const;
+};
+
+
+
+
+
+// ============================================================
+// MODULE 5: TileRack (raw DMA, deep copy)
+// Letters are kept sorted by board position.
+// ============================================================
+class TileRack {
+private:
+    Tile* tiles;
+    int* positions;
+    int capacity;
+    int count;
+public:
+    TileRack(int cap = 8);
+    TileRack(const TileRack& other);              // deep copy
+    TileRack& operator=(const TileRack& other);   // deep copy
+    ~TileRack();
+
+    void addTile(char letter, int position);      // throws RackFullException
+    void removeTile(char letter);                 // throws RackEmptyException
+    bool isFull() const;
+    bool isEmpty() const;
+    int getCount() const;
+    string toString() const;
+    void display() const;
+
+    // MODULE 11: merge two racks into one clue with a space between
+    TileRack operator+(const TileRack& other) const;
+    friend ostream& operator<<(ostream& os, const TileRack& r);
+};
+
+// ============================================================
+// MODULE 3 and 9: Character hierarchy
+// Character is abstract. display() is resolved at runtime.
+// ============================================================
+class Character {
+private:
+    bool isCulprit;        // set by GameEngine (friend)
+    bool interviewed;      // set by GameEngine (friend)
+protected:
+    string characterName;
+    string nationality;
+    string characterRole;
+public:
+    Character(const string& name, const string& role, const string& nat);
+    virtual ~Character();
+
+    virtual void display() const = 0;                 // pure virtual
+    virtual int requiredCredibility() const;          // interview gate
+    virtual Clue getClue() const;                     // letter carried by this person
+
+    string getName() const;
+    string getRole() const;
+    string getNationality() const;
+    bool getIsCulprit() const;
+    bool isInterviewed() const;
+
+    friend class GameEngine;                          // MODULE 11
+    friend ostream& operator<<(ostream& os, const Character& c);
+    friend istream& operator>>(istream& is, Character& c);
+};
+
+class Victim : public Character {
+private:
+    char letterClueChar;
+    int boardPosChar;
+    WordRow clueRowChar;
+public:
+    Victim(const string& name, const string& nat, char letter, int pos);
+    void display() const;
+    int requiredCredibility() const;
+    Clue getClue() const;
+};
+
+class Suspect : public Character {
+protected:
+    char letterClueChar;
+    int boardPosChar;
+    WordRow clueRowChar;
+public:
+    Suspect(const string& name, const string& role, const string& nat, char letter, int pos);
+    virtual ~Suspect() {}
+    Clue getClue() const;
+    // display() stays pure virtual, so Suspect is abstract too
+};
+
+// Virtual inheritance solves the diamond: Suspect exists once inside PA
+class BusinessRelations : virtual public Suspect {
+public:
+    BusinessRelations(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class CloseRelations : virtual public Suspect {
+public:
+    CloseRelations(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class Partner : public BusinessRelations {
+public:
+    Partner(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos),
+        BusinessRelations(name, role, nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 50
+};
+
+class PA : public BusinessRelations, public CloseRelations {
+public:
+    PA(const string& name, const string& nat, char letter, int pos)
+        : Suspect(name, "PA", nat, letter, pos),
+        BusinessRelations(name, "PA", nat, letter, pos),
+        CloseRelations(name, "PA", nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 35
+};
+
+class HouseHelp : public Suspect {
+public:
+    HouseHelp(const string& name, const string& role, const string& nat, char letter, int pos)
+        : Suspect(name, role, nat, letter, pos) {
+    }
+};
+
+class Cook : public HouseHelp {
+public:
+    Cook(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Cook", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class Guard : public HouseHelp {
+public:
+    Guard(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Guard", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class Servant : public HouseHelp {
+public:
+    Servant(const string& name, const string& nat, char letter, int pos)
+        : HouseHelp(name, "Servant", nat, letter, pos) {
+    }
+    void display() const;
+};
+
+class OwnersChild : public CloseRelations {
+public:
+    OwnersChild(const string& name, const string& nat, char letter, int pos)
+        : Suspect(name, "Child", nat, letter, pos),
+        CloseRelations(name, "Child", nat, letter, pos) {
+    }
+    void display() const;
+    int requiredCredibility() const;   // 75
+};
+
+class Detective : public Character {
+private:
+    int credibility;
+    int turns;
+    TileRack rack1;          // letters for Word 1 (7)
+    TileRack rack2;          // letters for Word 2 (8)
+    string solved1;
+    string solved2;
+    void useTurn();          // only GameEngine increments turns
+    friend class GameEngine;
+public:
+    Detective(const string& name, int startCredibility);
+    void display() const;
+    void loseCredibility(int amount);
+    int getCredibility() const;
+    int getTurns() const;
+    TileRack& getRack(WordRow row);
+    void setSolved(WordRow row, const string& word);
+    bool isSolved(WordRow row) const;
+    string getSolved(WordRow row) const;
 };
