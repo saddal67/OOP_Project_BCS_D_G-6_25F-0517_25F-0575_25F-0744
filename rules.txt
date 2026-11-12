@@ -1,0 +1,6 @@
+Max_Turns=25
+Starting_Credibility=100
+Every_Wrong_Turn=-5
+Every_Wrong_Word=-10
+Win_Condition=Accuse_Correct_Culprit
+Lose_Condition=Credibility_Zero_Or_Turns_Exhausted
