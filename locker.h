@@ -507,8 +507,6 @@ public:
 };
 
 
-
-
 // ============================================================
 // MODULE 4: Scrabble board (jagged DMA grid)
 // ============================================================
@@ -537,6 +535,28 @@ public:
 
     friend ostream& operator<<(ostream& os, const Scrabble& s);
     friend istream& operator>>(istream& is, Scrabble& s);
+};
+
+// ============================================================
+// MODULE 4: Cottage (DMA array of Location, aggregation)
+// ============================================================
+class Cottage {
+private:
+    Location* locations;
+    int count;
+public:
+    Cottage();
+    Cottage(const Cottage& other);
+    Cottage& operator=(const Cottage& other);
+    ~Cottage();
+
+    void loadFromFile(const string& file, int culpritIndex);
+    int getLocationCount() const;
+    bool isSearched(int idx) const;
+    void markSearched(int idx);
+    string getLocationName(int idx) const;
+    Clue getClue(int idx) const;
+    void displayLocations() const;
 };
 // ============================================================
 // MODULE 6: Leader/score board (file handling)
