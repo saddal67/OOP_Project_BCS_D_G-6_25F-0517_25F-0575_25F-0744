@@ -505,3 +505,36 @@ public:
     bool isSolved(WordRow row) const;
     string getSolved(WordRow row) const;
 };
+
+
+
+
+// ============================================================
+// MODULE 4: Scrabble board (jagged DMA grid)
+// ============================================================
+class Scrabble {
+private:
+    Tile** grid;
+    int rowLen[2];
+    string target[2];
+    string lastInput;
+    void allocate();
+    void release();
+    void copyFrom(const Scrabble& other);
+public:
+    Scrabble();
+    Scrabble(const Scrabble& other);
+    Scrabble& operator=(const Scrabble& other);
+    ~Scrabble();
+
+    void setWords(const string& w1, const string& w2);
+    void placeLetter(const Clue& c);                       // throws on bad placement
+    bool isRowComplete(WordRow row) const;
+    string getWord(WordRow row) const;
+    bool checkWord(WordRow row, const string& guess) const; // throws InvalidWordException
+    string getLastInput() const;
+    void display() const;
+
+    friend ostream& operator<<(ostream& os, const Scrabble& s);
+    friend istream& operator>>(istream& is, Scrabble& s);
+};
