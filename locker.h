@@ -507,8 +507,6 @@ public:
 };
 
 
-
-
 // ============================================================
 // MODULE 4: Scrabble board (jagged DMA grid)
 // ============================================================
@@ -538,6 +536,28 @@ public:
     friend ostream& operator<<(ostream& os, const Scrabble& s);
     friend istream& operator>>(istream& is, Scrabble& s);
 };
+
+// ============================================================
+// MODULE 4: Cottage (DMA array of Location, aggregation)
+// ============================================================
+class Cottage {
+private:
+    Location* locations;
+    int count;
+public:
+    Cottage();
+    Cottage(const Cottage& other);
+    Cottage& operator=(const Cottage& other);
+    ~Cottage();
+
+    void loadFromFile(const string& file, int culpritIndex);
+    int getLocationCount() const;
+    bool isSearched(int idx) const;
+    void markSearched(int idx);
+    string getLocationName(int idx) const;
+    Clue getClue(int idx) const;
+    void displayLocations() const;
+};
 // ============================================================
 // MODULE 6: Leader/score board (file handling)
 // ============================================================
@@ -550,3 +570,82 @@ public:
         int turnsLeft, const string& culprit) const;
     void display() const;
 };
+<<<<<<< HEAD
+=======
+
+
+
+// ============================================================
+// MODULE 12: GameEngine (Singleton)
+// Composition: Detective, Cottage, Scrabble, TileRack, Characters
+// Association: ScoreBoard (not owned)
+// Friend of Character
+// ============================================================
+class GameEngine {
+private:
+    enum { SUSPECT_COUNT = 7, CHAR_COUNT = 8 };
+
+    static GameEngine* instance;
+
+    GameState state;
+    bool running;
+
+    int maxTurns;
+    int startCredibility;
+    int wrongTurnPenalty;
+    int wrongWordPenalty;
+    string winCondition;
+    string loseCondition;
+    bool usingDefaultRules;
+
+    int culpritIndex;
+    string word1;
+    string word2;
+
+    Detective* detective;                 // composition
+    Cottage* cottage;                     // composition
+    Scrabble* scrabble;                   // composition
+    TileRack* mergedRack;                 // composition (combined clue)
+    Character* characters[CHAR_COUNT];    // owned, index 0 is the Victim
+    ScoreBoard* scoreBoard;               // association
+
+    GameEngine(ScoreBoard* sb);
+    ~GameEngine();
+    GameEngine(const GameEngine&);              // not implemented
+    GameEngine& operator=(const GameEngine&);   // not implemented
+
+    void loadRules();
+    void loadCharacters(const string& file);
+    void loadClue(const string& file);
+    Character* createCharacter(const string& name, const string& role,
+        const string& nat, char letter, int pos);
+    Character* findCulprit() const;
+    void cleanupGame();
+
+    void mainMenuStep();
+    void gameStep();
+    void newGame();
+    void showAbout() const;
+    void showRules() const;
+    void showStatus() const;
+
+    void visitLocation();
+    void interview();
+    void formWord();
+    void accuse();
+    void quitGame();
+    void revealCulprit();
+    void checkEnd();
+    void endGame(bool won);
+
+public:
+    static GameEngine* getInstance(ScoreBoard* sb = NULL);
+    static void destroyInstance();
+
+    void showTitle() const;
+    void step();                              // one menu action
+    void onError(const GameException& e);     // applies penalties
+    bool isRunning() const;
+    void stop();
+};
+>>>>>>> a263f4ef02b9e872ed08f066551165457a10666e
