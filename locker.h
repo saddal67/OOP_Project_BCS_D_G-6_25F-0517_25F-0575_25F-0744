@@ -570,3 +570,79 @@ public:
         int turnsLeft, const string& culprit) const;
     void display() const;
 };
+
+
+
+// ============================================================
+// MODULE 12: GameEngine (Singleton)
+// Composition: Detective, Cottage, Scrabble, TileRack, Characters
+// Association: ScoreBoard (not owned)
+// Friend of Character
+// ============================================================
+class GameEngine {
+private:
+    enum { SUSPECT_COUNT = 7, CHAR_COUNT = 8 };
+
+    static GameEngine* instance;
+
+    GameState state;
+    bool running;
+
+    int maxTurns;
+    int startCredibility;
+    int wrongTurnPenalty;
+    int wrongWordPenalty;
+    string winCondition;
+    string loseCondition;
+    bool usingDefaultRules;
+
+    int culpritIndex;
+    string word1;
+    string word2;
+
+    Detective* detective;                 // composition
+    Cottage* cottage;                     // composition
+    Scrabble* scrabble;                   // composition
+    TileRack* mergedRack;                 // composition (combined clue)
+    Character* characters[CHAR_COUNT];    // owned, index 0 is the Victim
+    ScoreBoard* scoreBoard;               // association
+
+    GameEngine(ScoreBoard* sb);
+    ~GameEngine();
+    GameEngine(const GameEngine&);              // not implemented
+    GameEngine& operator=(const GameEngine&);   // not implemented
+
+    void loadRules();
+    void loadCharacters(const string& file);
+    void loadClue(const string& file);
+    Character* createCharacter(const string& name, const string& role,
+        const string& nat, char letter, int pos);
+    Character* findCulprit() const;
+    void cleanupGame();
+
+    void mainMenuStep();
+    void gameStep();
+    void newGame();
+    void showAbout() const;
+    void showRules() const;
+    void showStatus() const;
+
+    void visitLocation();
+    void interview();
+    void formWord();
+    void accuse();
+    void quitGame();
+    void revealCulprit();
+    void checkEnd();
+    void endGame(bool won);
+
+public:
+    static GameEngine* getInstance(ScoreBoard* sb = NULL);
+    static void destroyInstance();
+
+    void showTitle() const;
+    void step();                              // one menu action
+    void onError(const GameException& e);     // applies penalties
+    bool isRunning() const;
+    void stop();
+};
