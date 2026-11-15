@@ -68,6 +68,33 @@ int Utils::split(const string& line, char delim, string parts[], int maxParts) {
         }
     }
     if (count < maxParts) parts[count] = trim(cur);
-    count += 1;
+    count = count +1;
     return count;
 }
+
+
+int Utils::toInt(const string& s, bool& ok) {
+    string t = trim(s);
+    ok = false;
+    if (t.empty()) return 0;
+    int i = 0;
+    int sign = 1;
+    if (t[0] == '-') { sign = -1; i = 1; }
+    else if (t[0] == '+') { i = 1; }
+    if (i >= (int)t.length()) return 0;
+    long val = 0;
+    for (; i < (int)t.length(); i += 1) {
+        if (t[i] < '0' || t[i] > '9') return 0;
+        val = val * 10 + (t[i] - '0');
+        if (val > 100000) return 0;
+    }
+    ok = true;
+    return (int)(sign * val);
+}
+
+
+
+
+
+
+
