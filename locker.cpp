@@ -39,3 +39,35 @@ istream& operator>>(istream& is, Location& l) {
     is >> l.locName;
     return is;
 }
+
+
+
+// ============================================================
+// Utils
+// ============================================================
+string Utils::trim(const string& s) 
+{
+    int start = 0;
+    int end = (int)s.length() - 1;
+    while (start <= end && isspace((unsigned char)s[start])) start += 1;
+    while (end >= start && isspace((unsigned char)s[end])) end -= 1;
+    return s.substr(start, end - start + 1);
+}
+
+int Utils::split(const string& line, char delim, string parts[], int maxParts) {
+    int count = 0;
+    string cur = "";
+    for (size_t i = 0; i < line.length(); i += 1) {
+        if (line[i] == delim) {
+            if (count < maxParts) parts[count] = trim(cur);
+            count += 1;
+            cur = "";
+        }
+        else {
+            cur += line[i];
+        }
+    }
+    if (count < maxParts) parts[count] = trim(cur);
+    count += 1;
+    return count;
+}
