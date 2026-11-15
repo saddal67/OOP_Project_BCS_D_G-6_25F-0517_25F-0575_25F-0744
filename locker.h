@@ -570,8 +570,7 @@ public:
         int turnsLeft, const string& culprit) const;
     void display() const;
 };
-<<<<<<< HEAD
-=======
+
 
 
 
@@ -644,8 +643,7 @@ public:
 
     void showTitle() const;
     void step();                              // one menu action
-    void onError(const GameException& e);     // applies penalties
+    void onError(const GameException& e);     
     bool isRunning() const;
     void stop();
 };
->>>>>>> a263f4ef02b9e872ed08f066551165457a10666e

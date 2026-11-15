@@ -39,15 +39,3 @@ istream& operator>>(istream& is, Location& l) {
     is >> l.locName;
     return is;
 }
-// ============================================================
-// MODULE 6: Leader/score board (file handling)
-// ============================================================
-class ScoreBoard {
-private:
-    string path;
-public:
-    ScoreBoard(const string& p = "leader/scoreBoard.txt");
-    void addScore(const string& detective, bool won, int credibility,
-        int turnsLeft, const string& culprit) const;
-    void display() const;
-};
