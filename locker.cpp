@@ -93,6 +93,17 @@ int Utils::toInt(const string& s, bool& ok) {
 }
 
 
+string Utils::intToString(int n) {
+    if (n == 0) return "0";
+    bool neg = n < 0;
+    if (neg) n = -n;
+    string s = "";
+    while (n > 0) {
+        s = (char)('0' + n % 10) + s;
+        n /= 10;
+    }
+    return neg ? "-" + s : s;
+}
 
 
 
