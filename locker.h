@@ -11,10 +11,38 @@ using namespace std;
 // ============================================================
 // MODULE 1: Enums and Structs
 // ============================================================
-enum GameState { STATE_MENU, STATE_PLAYING, STATE_WON, STATE_LOST, STATE_EXIT };
-enum MenuChoice { MENU_NEW_GAME = 1, MENU_SCOREBOARD, MENU_ABOUT, MENU_RULES, MENU_EXIT };
-enum WordRow { WORD_1 = 0, WORD_2 = 1 };
-enum PenaltyType { PENALTY_NONE, PENALTY_TURN, PENALTY_WORD };
+enum GameState 
+{ 
+    STATE_MENU,
+    STATE_PLAYING, 
+    STATE_WON, 
+    STATE_LOST, 
+    STATE_EXIT
+};
+
+enum MenuChoice 
+{
+    MENU_NEW_GAME = 1,
+    MENU_SCOREBOARD,
+    MENU_ABOUT,
+    MENU_RULES,
+    MENU_EXIT
+
+ };
+
+enum WordRow 
+{ 
+    WORD_1 = 0,
+    WORD_2 = 1 
+};
+
+
+enum PenaltyType 
+{ 
+    PENALTY_NONE, 
+    PENALTY_TURN, 
+    PENALTY_WORD 
+};
 
 struct Tile {
     char tileLetter;
