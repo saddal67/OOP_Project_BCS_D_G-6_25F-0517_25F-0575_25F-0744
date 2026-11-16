@@ -156,3 +156,50 @@ int Utils::readInt(const string& prompt, int lo, int hi) {
 
 
 
+
+
+bool Utils::askYesNo(const string& prompt) {
+    while (true) {
+        cout << prompt;
+        string a = toUpper(trim(readLine()));
+        if (a == "Y") return true;
+        if (a == "N") return false;
+        cout << "Please enter Y or N.\n";
+    }
+}
+
+
+
+
+void Utils::clearScreen() 
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+void Utils::pause() 
+{
+    cout << "\nPress Enter to continue...";
+    readLine();
+}
+
+string Utils::today() {
+    time_t now = time(NULL);
+    struct tm* t = localtime(&now);
+    char buf[16];
+    strftime(buf, sizeof(buf), "%d-%m-%y", t);
+    return string(buf);
+}
+
+void Utils::makeDirectory(const string& name) {
+#ifdef _WIN32
+    string cmd = "if not exist " + name + " mkdir " + name;
+#else
+    string cmd = "mkdir -p " + name;
+#endif
+    system(cmd.c_str());
+}
+
