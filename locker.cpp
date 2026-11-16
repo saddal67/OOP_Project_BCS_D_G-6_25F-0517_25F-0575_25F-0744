@@ -92,7 +92,6 @@ int Utils::toInt(const string& s, bool& ok) {
     return (int)(sign * val);
 }
 
-
 string Utils::intToString(int n) {
     if (n == 0) return "0";
     bool neg = n < 0;
@@ -104,7 +103,55 @@ string Utils::intToString(int n) {
     }
     return neg ? "-" + s : s;
 }
+string Utils::toUpper(const string& s) {
+    string r = s;
+    for (size_t i = 0; i < r.length(); i += 1) r[i] = (char)toupper((unsigned char)r[i]);
+    return r;
+}
 
+string Utils::underscoreToSpace(const string& s) {
+    string r = s;
+    for (size_t i = 0; i < r.length(); i += 1) if (r[i] == '_') r[i] = ' ';
+    return r;
+}
+
+string Utils::spaceToUnderscore(const string& s) {
+    string r = s;
+    for (size_t i = 0; i < r.length(); i += 1) if (r[i] == ' ') r[i] = '_';
+    return r;
+}
+
+bool Utils::hasSpace(const string& s) {
+    for (size_t i = 0; i < s.length(); i += 1) if (isspace((unsigned char)s[i])) return true;
+    return false;
+}
+
+string Utils::pad(const string& s, int width) {
+    string r = s;
+    while ((int)r.length() < width) r += " ";
+    return r;
+}
+
+string Utils::readLine() {
+    string line;
+    if (!getline(cin, line)) {
+        cout << "\nInput closed. Exiting.\n";
+        exit(0);
+    }
+    return line;
+}
+
+int Utils::readInt(const string& prompt, int lo, int hi) {
+    cout << prompt;
+    string line = readLine();
+    bool ok;
+    int v = toInt(line, ok);
+    if (!ok || v < lo || v > hi) {
+        throw InvalidInputException("Invalid choice. Enter a number from "
+            + intToString(lo) + " to " + intToString(hi) + ".");
+    }
+    return v;
+}
 
 
 
