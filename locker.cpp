@@ -245,3 +245,45 @@ TileRack& TileRack::operator=(const TileRack& other) {
     
     return *this;
 }
+
+
+
+
+
+TileRack::~TileRack() {
+    delete[] tiles;
+    delete[] positions;
+}
+
+void TileRack::addTile(char letter, int position) {
+    if (count >= capacity) throw RackFullException("The rack is full.");
+    int at = 0;
+    while (at < count&& positions[at] <= position) at += 1;
+    for (int j = count; j > at; j -= 1) {
+        tiles[j] = tiles[j - 1];
+        positions[j] = positions[j - 1];
+    }
+    tiles[at].tileLetter = (char)toupper((unsigned char)letter);
+    tiles[at].filled = true;
+    positions[at] = position;
+    count += 1;
+}
+
+void TileRack::removeTile(char letter) {
+    if (count == 0) throw RackEmptyException("The rack is empty.");
+    int at = -1;
+    for (int i = 0; i < count; i += 1) {
+        if (toupper((unsigned char)tiles[i].tileLetter) == toupper((unsigned char)letter)) {
+            at = i;
+            break;
+        }
+    }
+    if (at == -1) throw WrongLetterException("That letter is not in the rack.");
+    for (int j = at; j < count - 1; j += 1) {
+        tiles[j] = tiles[j + 1];
+        positions[j] = positions[j + 1];
+    }
+    tiles[count - 1] = Tile();
+    positions[count - 1] = 0;
+    count -= 1;
+}
