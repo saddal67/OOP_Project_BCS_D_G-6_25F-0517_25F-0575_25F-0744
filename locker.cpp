@@ -203,3 +203,45 @@ void Utils::makeDirectory(const string& name) {
     system(cmd.c_str());
 }
 
+
+
+// ============================================================
+// TileRack
+// ============================================================
+TileRack::TileRack(int cap) : tiles(NULL), positions(NULL), capacity(cap), count(0) {
+    if (capacity < 1) capacity = 1;
+    tiles = new Tile[capacity];
+    positions = new int[capacity];
+    for (int i = 0; i < capacity; i += 1) positions[i] = 0;
+}
+
+TileRack::TileRack(const TileRack& other)
+    : tiles(NULL), positions(NULL), capacity(other.capacity), count(other.count) {
+    tiles = new Tile[capacity];
+    positions = new int[capacity];
+    for (int i = 0; i < capacity; i += 1) {
+        tiles[i] = other.tiles[i];
+        positions[i] = other.positions[i];
+    }
+}
+
+TileRack& TileRack::operator=(const TileRack& other) {
+    if (this != &other) {
+        Tile* nt = new Tile[other.capacity];
+        int* np = new int[other.capacity];
+        for (int i = 0; i < other.capacity; i += 1) {
+            nt[i] = other.tiles[i];
+            np[i] = other.positions[i];
+        }
+        delete[] tiles;
+        delete[] positions;
+        tiles = nt;
+        positions = np;
+
+        capacity = other.capacity;
+        count = other.count;
+
+    }
+    
+    return *this;
+}
