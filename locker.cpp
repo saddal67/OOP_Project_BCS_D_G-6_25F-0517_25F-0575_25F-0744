@@ -287,3 +287,43 @@ void TileRack::removeTile(char letter) {
     positions[count - 1] = 0;
     count -= 1;
 }
+bool TileRack::isFull() const { return count >= capacity; }
+bool TileRack::isEmpty() const { return count == 0; }
+int TileRack::getCount() const { return count; }
+
+string TileRack::toString() const {
+    string s = "";
+    for (int i = 0; i < count; i += 1) s += tiles[i].tileLetter;
+    return s;
+}
+
+void TileRack::display() const {
+    if (count == 0) {
+        cout << "(empty)";
+        return;
+    }
+    for (int i = 0; i < count; i += 1) {
+        cout << tiles[i].tileLetter << "(" << positions[i] << ") ";
+    }
+}
+
+TileRack TileRack::operator+(const TileRack& other) const {
+    TileRack result(capacity + other.capacity + 1);
+    int k = 0;
+    for (int i = 0; i < count; i += 1) {
+        result.tiles[k] = tiles[i];
+        result.positions[k] = positions[i];
+        k += 1;
+    }
+    result.tiles[k].tileLetter = ' ';      // the space between the two words
+    result.tiles[k].filled = true;
+    result.positions[k] = 0;
+    k += 1;
+    for (int i = 0; i < other.count; i += 1) {
+        result.tiles[k] = other.tiles[i];
+        result.positions[k] = other.positions[i];
+        k += 1;
+    }
+    result.count = k;
+    return result;
+}
