@@ -442,3 +442,42 @@ void OwnersChild::display() const {
     cout << "  " << characterName << " (" << nationality << "), the owner's teenage child, visibly panicked.\n";
     cout << "  \"I did not do anything! Please, I just want this to end.\"\n";
 }
+
+
+int OwnersChild::requiredCredibility() const { return 75; }
+
+Detective::Detective(const string& name, int startCredibility)
+    : Character(name, "Detective", "Pakistani"),
+    credibility(startCredibility), turns(0), rack1(7), rack2(8), solved1(""), solved2("") {
+}
+
+void Detective::display() const {
+    cout << "  Detective " << characterName << " | Credibility: " << credibility
+        << " | Turns used: " << turns << "\n";
+}
+
+void Detective::useTurn() { turns += 1; }
+
+void Detective::loseCredibility(int amount) {
+    credibility -= amount;
+    if (credibility < 0) credibility = 0;
+}
+
+int Detective::getCredibility() const { return credibility; }
+int Detective::getTurns() const { return turns; }
+
+TileRack& Detective::getRack(WordRow row) {
+    return (row == WORD_1) ? rack1 : rack2;
+}
+
+void Detective::setSolved(WordRow row, const string& word) {
+    if (row == WORD_1) solved1 = word; else solved2 = word;
+}
+
+bool Detective::isSolved(WordRow row) const {
+    return row == WORD_1 ? !solved1.empty() : !solved2.empty();
+}
+
+string Detective::getSolved(WordRow row) const {
+    return row == WORD_1 ? solved1 : solved2;
+}
