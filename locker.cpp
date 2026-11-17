@@ -327,3 +327,14 @@ TileRack TileRack::operator+(const TileRack& other) const {
     result.count = k;
     return result;
 }
+
+
+
+ostream& operator<<(ostream& os, const TileRack& r) {
+    os << "Rack: ";
+    if (r.count == 0) os << "(empty)";
+    else os << r.toString();
+    
+
+    return os;
+}
