@@ -338,3 +338,75 @@ ostream& operator<<(ostream& os, const TileRack& r) {
 
     return os;
 }
+
+
+// ============================================================
+// Character hierarchy
+// ============================================================
+Character::Character(const string& name, const string& role, const string& nat)
+    : isCulprit(false), interviewed(false),
+    characterName(name), nationality(nat), characterRole(role) {
+}
+Character::~Character() {}
+
+int Character::requiredCredibility() const { return 0; }
+
+Clue Character::getClue() const {
+    Clue c;
+    c.clueLetter = ' ';
+    c.cluePosition = 0;
+    c.clueRow = WORD_2;
+    return c;
+}
+string Character::getName() const { return characterName; }
+string Character::getRole() const { return characterRole; }
+string Character::getNationality() const { return nationality; }
+bool Character::getIsCulprit() const { return isCulprit; }
+bool Character::isInterviewed() const { return interviewed; }
+
+ostream& operator<<(ostream& os, const Character& c) {
+    os << c.characterName << " (" << c.characterRole << ")";
+    return os;
+}
+
+istream& operator>>(istream& is, Character& c) {
+    is >> c.characterName >> c.nationality;
+    return is;
+}
+
+Victim::Victim(const string& name, const string& nat, char letter, int pos)
+    : Character(name, "Victim", nat), letterClueChar(letter), boardPosChar(pos), clueRowChar(WORD_2) {
+}
+
+void Victim::display() const {
+    cout << "  " << characterName << " (" << nationality << ") owns the cottage and was robbed tonight.\n";
+    cout << "  \"Whoever did this knew exactly which book opens the locker.\"\n";
+}
+
+int Victim::requiredCredibility() const 
+{ 
+    return 80;
+}
+
+Clue Victim::getClue() const {
+    Clue c;
+    c.clueLetter = letterClueChar;
+    c.cluePosition = boardPosChar;
+    c.clueRow = clueRowChar;
+    return c;
+}
+
+Suspect::Suspect(const string& name, const string& role, const string& nat, char letter, int pos)
+    : Character(name, role, nat), letterClueChar(letter), boardPosChar(pos), clueRowChar(WORD_2)
+     {
+}
+
+
+
+Clue Suspect::getClue() const {
+    Clue c;
+    c.clueLetter = letterClueChar;
+    c.cluePosition = boardPosChar;
+    c.clueRow = clueRowChar;
+    return c;
+}
