@@ -410,3 +410,35 @@ Clue Suspect::getClue() const {
     c.clueRow = clueRowChar;
     return c;
 }
+
+void Partner::display() const {
+    cout << "  " << characterName << " (" << nationality << "), a business partner of the owner.\n";
+    cout << "  \"I have plenty of deals to protect. Do not waste my time.\"\n";
+}
+int Partner::requiredCredibility() const { return 50; }
+
+void PA::display() const {
+    cout << "  " << characterName << " (" << nationality << "), the owner's trusted PA who knows the secrets.\n";
+    cout << "  \"I hired you, detective. I want the truth as much as anyone.\"\n";
+}
+int PA::requiredCredibility() const { return 35; }
+
+void Cook::display() const {
+    cout << "  " << characterName << " (" << nationality << "), the cook, still smelling of the kitchen.\n";
+    cout << "  \"I was busy with dinner all evening, I saw very little.\"\n";
+}
+
+void Guard::display() const {
+    cout << "  " << characterName << " (" << nationality << "), the guard on duty during the party.\n";
+    cout << "  \"The doors were locked. Nobody came in from outside.\"\n";
+}
+
+void Servant::display() const {
+    cout << "  " << characterName << " (" << nationality << "), a servant who moved through every room.\n";
+    cout << "  \"I only carried trays and cleaned up, sir.\"\n";
+}
+
+void OwnersChild::display() const {
+    cout << "  " << characterName << " (" << nationality << "), the owner's teenage child, visibly panicked.\n";
+    cout << "  \"I did not do anything! Please, I just want this to end.\"\n";
+}
