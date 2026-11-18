@@ -599,3 +599,90 @@ istream& operator>>(istream& is, Scrabble& s) {
     is >> s.lastInput;
     return is;
 }
+
+// ============================================================
+// Cottage
+// ============================================================
+Cottage::Cottage() : locations(NULL), count(7) {
+    locations = new Location[count];
+}
+
+Cottage::Cottage(const Cottage& other) : locations(NULL), count(other.count) {
+    locations = new Location[count];
+    for (int i = 0; i < count; i += 1) locations[i] = other.locations[i];
+}
+
+Cottage& Cottage::operator=(const Cottage& other) {
+    if (this != &other) {
+        Location* nl = new Location[other.count];
+        for (int i = 0; i < other.count; i += 1) nl[i] = other.locations[i];
+        delete[] locations;
+        locations = nl;
+        count = other.count;
+    }
+    return *this;
+}
+
+Cottage::~Cottage() { delete[] locations; }
+
+void Cottage::loadFromFile(const string& file, int culpritIndex) {
+    ifstream in(file.c_str());
+    if (!in) throw FileException("Cannot open " + file + ". File not found.");
+    string line;
+    if (!getline(in, line)) throw FileException(file + " is empty or corrupted.");   // header
+    for (int i = 0; i < count; i += 1) {
+        do {
+            if (!getline(in, line)) throw FileException(file + " is corrupted: expected 7 locations.");
+            line = Utils::trim(line);
+        } while (line.empty());
+
+        string p[9];
+        int n = Utils::split(line, '|', p, 9);
+        if (n < 9) throw FileException(file + " is corrupted: a line has missing columns.");
+        bool ok;
+        int pos = Utils::toInt(p[1], ok);
+        if (!ok || pos < 1 || pos > 7) throw FileException(file + " is corrupted: bad board position.");
+        string letter = p[2 + culpritIndex];
+        if (letter.empty() || !isalpha((unsigned char)letter[0]))
+            throw FileException(file + " is corrupted: bad letter.");
+
+        locations[i].locName = Utils::underscoreToSpace(p[0]);
+        locations[i].letterClueLoc = (char)toupper((unsigned char)letter[0]);
+        locations[i].boardPosLoc = pos;
+        locations[i].locRow = WORD_1;
+        locations[i].locSearchFlag = false;
+    }
+}
+
+int Cottage::getLocationCount() const { return count; }
+
+bool Cottage::isSearched(int idx) const {
+    if (idx < 0 || idx >= count) throw InvalidInputException("No such location.");
+    return locations[idx].locSearchFlag;
+}
+
+void Cottage::markSearched(int idx) {
+    if (idx < 0 || idx >= count) throw InvalidInputException("No such location.");
+    locations[idx].locSearchFlag = true;
+}
+
+string Cottage::getLocationName(int idx) const {
+    if (idx < 0 || idx >= count) throw InvalidInputException("No such location.");
+    return locations[idx].locName;
+}
+
+Clue Cottage::getClue(int idx) const {
+    if (idx < 0 || idx >= count) throw InvalidInputException("No such location.");
+    Clue c;
+    c.clueLetter = locations[idx].letterClueLoc;
+    c.cluePosition = locations[idx].boardPosLoc;
+    c.clueRow = locations[idx].locRow;
+    return c;
+}
+
+void Cottage::displayLocations() const {
+    for (int i = 0; i < count; i += 1) {
+        cout << "[" << (i + 1) << "] " << Utils::pad(locations[i].locName, 12)
+            << (locations[i].locSearchFlag ? "Searched" : "NOT Searched") << "\n";
+    }
+}
