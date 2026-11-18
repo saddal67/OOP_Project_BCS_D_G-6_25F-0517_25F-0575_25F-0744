@@ -481,3 +481,121 @@ bool Detective::isSolved(WordRow row) const {
 string Detective::getSolved(WordRow row) const {
     return row == WORD_1 ? solved1 : solved2;
 }
+
+
+
+// ============================================================
+// Scrabble
+// ============================================================
+void Scrabble::allocate() {
+    rowLen[0] = 7;
+    rowLen[1] = 8;
+    grid = new Tile * [2];
+    grid[0] = new Tile[rowLen[0]];
+    grid[1] = new Tile[rowLen[1]];
+}
+
+void Scrabble::release() {
+    if (grid != NULL) {
+        delete[] grid[0];
+        delete[] grid[1];
+        delete[] grid;
+        grid = NULL;
+    }
+}
+
+void Scrabble::copyFrom(const Scrabble& other) {
+    allocate();
+    for (int r = 0; r < 2; r += 1) {
+        for (int c = 0; c < rowLen[r]; c += 1) grid[r][c] = other.grid[r][c];
+        target[r] = other.target[r];
+    }
+    lastInput = other.lastInput;
+}
+
+Scrabble::Scrabble() : grid(NULL), lastInput("") {
+    allocate();
+    target[0] = "";
+    target[1] = "";
+}
+
+Scrabble::Scrabble(const Scrabble& other) : grid(NULL) { copyFrom(other); }
+
+Scrabble& Scrabble::operator=(const Scrabble& other) {
+    if (this != &other) 
+    {
+        release();
+        copyFrom(other);
+    }
+    return *this;
+}
+
+Scrabble::~Scrabble() { release(); }
+
+void Scrabble::setWords(const string& w1, const string& w2) {
+    if ((int)w1.length() != rowLen[0] || (int)w2.length() != rowLen[1]) {
+        throw FileException("Target words have the wrong length (need 7 and 8 letters).");
+    }
+    target[0] = Utils::toUpper(w1);
+    target[1] = Utils::toUpper(w2);
+}
+
+void Scrabble::placeLetter(const Clue& c) {
+    int r = (int)c.clueRow;
+    if (c.cluePosition < 1 || c.cluePosition > rowLen[r]) {
+        throw InvalidPositionException("Position " + Utils::intToString(c.cluePosition)
+            + " does not exist on this row.");
+    }
+    Tile& slot = grid[r][c.cluePosition - 1];
+    if (slot.filled) throw SlotFilledException("That slot is already filled.");
+    if (!target[r].empty()) {
+        Tile expected;
+        expected.tileLetter = target[r][c.cluePosition - 1];
+        Tile given;
+        given.tileLetter = c.clueLetter;
+        if (!(expected == given)) throw WrongLetterException("That letter does not belong in this slot.");
+    }
+    slot.tileLetter = (char)toupper((unsigned char)c.clueLetter);
+    slot.filled = true;
+}
+
+bool Scrabble::isRowComplete(WordRow row) const {
+    int r = (int)row;
+    for (int i = 0; i < rowLen[r]; i += 1) if (!grid[r][i].filled) return false;
+    return true;
+}
+
+string Scrabble::getWord(WordRow row) const {
+    int r = (int)row;
+    string w = "";
+    for (int i = 0; i < rowLen[r]; i += 1) if (grid[r][i].filled) w += grid[r][i].tileLetter;
+    return w;
+}
+
+bool Scrabble::checkWord(WordRow row, const string& guess) const {
+    int r = (int)row;
+    if ((int)guess.length() != rowLen[r]) {
+        throw InvalidWordException("The word must have exactly " + Utils::intToString(rowLen[r]) + " letters.");
+    }
+    return Utils::toUpper(guess) == target[r];
+}
+
+string Scrabble::getLastInput() const { return lastInput; }
+
+void Scrabble::display() const { cout << *this; }
+
+ostream& operator<<(ostream& os, const Scrabble& s) {
+    os << "Scrabble:\n";
+    for (int r = 0; r < 2; r += 1) {
+        os << "  Word " << (r + 1) << ": ";
+        for (int c = 0; c < s.rowLen[r]; c += 1) os << s.grid[r][c];
+        os << "\n";
+    }
+    return os;
+}
+
+istream& operator>>(istream& is, Scrabble& s) {
+    s.lastInput = "";
+    is >> s.lastInput;
+    return is;
+}
