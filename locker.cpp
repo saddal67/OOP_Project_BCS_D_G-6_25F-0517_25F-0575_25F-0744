@@ -782,3 +782,41 @@ void GameEngine::cleanupGame() {
         characters[i] = NULL;
     }
 }
+
+// Rules fall back to defaults if the file is missing or corrupt
+void GameEngine::loadRules() {
+    maxTurns = 25; startCredibility = 100; wrongTurnPenalty = 5; wrongWordPenalty = 10;
+    winCondition = "Accuse_Correct_Culprit";
+    loseCondition = "Credibility_Zero_Or_Turns_Exhausted";
+    usingDefaultRules = false;
+
+    ifstream in("rules.txt");
+    if (!in) { usingDefaultRules = true; return; }
+
+    int mt = 25, sc = 100, wt = 5, ww = 10;
+    string win = winCondition, lose = loseCondition;
+    int found = 0;
+    bool corrupt = false;
+    string line;
+    while (getline(in, line)) {
+        line = Utils::trim(line);
+        if (line.empty()) continue;
+        size_t eq = line.find('=');
+        if (eq == string::npos) continue;        // ignore heading lines
+        string key = Utils::trim(line.substr(0, eq));
+        string val = Utils::trim(line.substr(eq + 1));
+        bool ok = true;
+        if (key == "Max_Turns") { mt = Utils::toInt(val, ok); found += 1; }
+        else if (key == "Starting_Credibility") { sc = Utils::toInt(val, ok); found += 1; }
+        else if (key == "Every_Wrong_Turn") { wt = Utils::toInt(val, ok); found += 1; }
+        else if (key == "Every_Wrong_Word") { ww = Utils::toInt(val, ok); found += 1; }
+        else if (key == "Win_Condition") { win = val; }
+        else if (key == "Lose_Condition") { lose = val; }
+        if (!ok) corrupt = true;
+    }
+    if (wt < 0) wt = -wt;
+    if (ww < 0) ww = -ww;
+    if (corrupt || found < 4 || mt < 1 || sc < 1) { usingDefaultRules = true; return; }
+    maxTurns = mt; startCredibility = sc; wrongTurnPenalty = wt; wrongWordPenalty = ww;
+    winCondition = win; loseCondition = lose;
+}
