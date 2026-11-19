@@ -864,3 +864,66 @@ void GameEngine::loadCharacters(const string& file) {
     if (findCulprit() == NULL)
         throw FileException(file + " is corrupted: culprit role not found.");
 }
+void GameEngine::loadClue(const string& file) {
+    ifstream in(file.c_str());
+    if (!in) throw FileException("Cannot open " + file + ". File not found.");
+    string line;
+    if (!getline(in, line)) throw FileException(file + " is empty or corrupted.");   // header
+    bool found = false;
+    while (getline(in, line)) {
+        line = Utils::trim(line);
+        if (line.empty()) continue;
+        string p[3];
+        int n = Utils::split(line, '|', p, 3);
+        if (n < 3) throw FileException(file + " is corrupted: a line has missing columns.");
+        if (p[0] == CULPRIT_ROLES[culpritIndex]) {
+            word1 = Utils::toUpper(p[1]);
+            word2 = Utils::toUpper(p[2]);
+            found = true;
+            break;
+        }
+    }
+    if (!found) throw FileException(file + " has no profile for the chosen culprit.");
+    scrabble->setWords(word1, word2);
+}
+
+Character* GameEngine::findCulprit() const {
+    for (int i = 0; i < CHAR_COUNT; i += 1) {
+        if (characters[i] != NULL && characters[i]->isCulprit) return characters[i];
+    }
+    return NULL;
+}
+
+void GameEngine::showTitle() const {
+    cout << "============================================================\n";
+    cout << "                     THE LOCKER HEIST\n";
+    cout << "          A Detective Game backed by OOP Principles\n";
+    cout << "============================================================\n";
+    cout << "A locker hidden behind a bookshelf was robbed during a party.\n";
+    cout << "Eight people were present. One of them is the culprit.\n";
+    cout << "You are the detective. Find the clues before credibility runs out.\n";
+}
+
+void GameEngine::step() {
+    if (state == STATE_EXIT) { running = false; return; }
+    if (state == STATE_PLAYING) { gameStep(); return; }
+    state = STATE_MENU;
+    mainMenuStep();
+}
+
+void GameEngine::mainMenuStep() {
+    cout << "\n========= THE LOCKER HEIST: MAIN MENU =========\n";
+    cout << "  [1] New Game\n  [2] View Leader/Score Board\n  [3] About\n  [4] Rules\n  [5] Exit\n";
+    cout << "===============================================\n";
+    int c = Utils::readInt("Choice: ", 1, 5);
+    switch ((MenuChoice)c) {
+    case MENU_NEW_GAME:   newGame(); break;
+    case MENU_SCOREBOARD:
+        if (scoreBoard == NULL) throw FileException("No score board is attached.");
+        scoreBoard->display();
+        break;
+    case MENU_ABOUT:      showAbout(); break;
+    case MENU_RULES:      showRules(); break;
+    case MENU_EXIT:       state = STATE_EXIT; running = false; break;
+    }
+}
