@@ -736,3 +736,49 @@ void ScoreBoard::display() const {
     if (rows == 0) cout << "No games played yet.\n";
     cout << "============================================\n";
 }
+
+
+
+// ============================================================
+// GameEngine (Singleton)
+// ============================================================
+GameEngine* GameEngine::instance = NULL;
+
+GameEngine::GameEngine(ScoreBoard* sb)
+    : state(STATE_MENU), running(true),
+    maxTurns(25), startCredibility(100), wrongTurnPenalty(5), wrongWordPenalty(10),
+    winCondition("Accuse_Correct_Culprit"),
+    loseCondition("Credibility_Zero_Or_Turns_Exhausted"),
+    usingDefaultRules(false), culpritIndex(0), word1(""), word2(""),
+    detective(NULL), cottage(NULL), scrabble(NULL), mergedRack(NULL), scoreBoard(sb) {
+    for (int i = 0; i < CHAR_COUNT; i += 1) characters[i] = NULL;
+    srand((unsigned)time(NULL));
+    loadRules();
+}
+
+
+GameEngine::~GameEngine() { cleanupGame(); }
+
+GameEngine* GameEngine::getInstance(ScoreBoard* sb) {
+    if (instance == NULL) instance = new GameEngine(sb);
+    return instance;
+}
+
+void GameEngine::destroyInstance() {
+    delete instance;
+    instance = NULL;
+}
+
+bool GameEngine::isRunning() const { return running; }
+void GameEngine::stop() { running = false; }
+
+void GameEngine::cleanupGame() {
+    delete detective;   detective = NULL;
+    delete cottage;     cottage = NULL;
+    delete scrabble;    scrabble = NULL;
+    delete mergedRack;  mergedRack = NULL;
+    for (int i = 0; i < CHAR_COUNT; i += 1) {
+        delete characters[i];       // virtual destructor frees the derived object
+        characters[i] = NULL;
+    }
+}
