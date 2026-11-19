@@ -820,3 +820,47 @@ void GameEngine::loadRules() {
     maxTurns = mt; startCredibility = sc; wrongTurnPenalty = wt; wrongWordPenalty = ww;
     winCondition = win; loseCondition = lose;
 }
+
+
+Character* GameEngine::createCharacter(const string& name, const string& role,
+    const string& nat, char letter, int pos) {
+    if (role == "Victim")    return new Victim(name, nat, letter, pos);
+    if (role == "Cook")      return new Cook(name, nat, letter, pos);
+    if (role == "Guard")     return new Guard(name, nat, letter, pos);
+    if (role == "Servant")   return new Servant(name, nat, letter, pos);
+    if (role == "Child")     return new OwnersChild(name, nat, letter, pos);
+    if (role == "Partner 1" || role == "Partner 2") return new Partner(name, role, nat, letter, pos);
+    if (role == "PA")        return new PA(name, nat, letter, pos);
+    throw FileException("Unknown role in characters file: " + role);
+}
+
+// First data line must be the Victim, then the 7 suspects
+void GameEngine::loadCharacters(const string& file) {
+    ifstream in(file.c_str());
+    if (!in) throw FileException("Cannot open " + file + ". File not found.");
+    string line;
+    if (!getline(in, line)) throw FileException(file + " is empty or corrupted.");   // header
+    for (int i = 0; i < CHAR_COUNT; i += 1) {
+        do {
+            if (!getline(in, line)) throw FileException(file + " is corrupted: expected 8 characters.");
+            line = Utils::trim(line);
+        } while (line.empty());
+
+        string p[12];
+        int n = Utils::split(line, '|', p, 12);
+        if (n < 12) throw FileException(file + " is corrupted: a line has missing columns.");
+        bool ok;
+        int pos = Utils::toInt(p[3], ok);
+        if (!ok || pos < 1 || pos > 8) throw FileException(file + " is corrupted: bad board position.");
+        string letter = p[4 + culpritIndex];
+        if (letter.empty() || !isalpha((unsigned char)letter[0]))
+            throw FileException(file + " is corrupted: bad letter.");
+
+        characters[i] = createCharacter(p[0], p[1], p[2], (char)toupper((unsigned char)letter[0]), pos);
+        if (p[1] == CULPRIT_ROLES[culpritIndex]) characters[i]->isCulprit = true;   // friend access
+    }
+    if (characters[0]->getRole() != "Victim")
+        throw FileException(file + " is corrupted: first character must be the Victim.");
+    if (findCulprit() == NULL)
+        throw FileException(file + " is corrupted: culprit role not found.");
+}
