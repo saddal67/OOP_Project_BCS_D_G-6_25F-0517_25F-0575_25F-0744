@@ -686,3 +686,53 @@ void Cottage::displayLocations() const {
             << (locations[i].locSearchFlag ? "Searched" : "NOT Searched") << "\n";
     }
 }
+
+
+// ============================================================
+// ScoreBoard
+// ============================================================
+ScoreBoard::ScoreBoard(const string& p) : path(p) {}
+
+void ScoreBoard::addScore(const string& detective, bool won, int credibility,
+    int turnsLeft, const string& culprit) const {
+    Utils::makeDirectory("leader");
+    bool needHeader = true;
+    {
+        ifstream test(path.c_str());
+        if (test) {
+            test.seekg(0, ios::end);
+            if (test.tellg() > 0) needHeader = false;
+        }
+    }
+    ofstream out(path.c_str(), ios::app);
+    if (!out) throw FileException("Cannot write to " + path + ".");
+    if (needHeader) out << "Detective|Result|Credibility|Turns_Left|Culprit|Date\n";
+    string t = Utils::intToString(turnsLeft);
+    if (turnsLeft < 10) t = "0" + t;
+    out << detective << "|" << (won ? "WIN" : "LOSE") << "|" << credibility << "|"
+        << t << "|" << culprit << "|" << Utils::today() << "\n";
+}
+
+void ScoreBoard::display() const {
+    ifstream in(path.c_str());
+    if (!in) throw FileException("Leader/score board file not found: " + path);
+    string line;
+    if (!getline(in, line)) throw FileException("Leader/score board file is empty or corrupted.");
+
+    cout << "\n=========== LEADER / SCORE BOARD ===========\n";
+    cout << Utils::pad("Detective", 14) << Utils::pad("Result", 7) << Utils::pad("Cred", 6)
+        << Utils::pad("Left", 6) << Utils::pad("Culprit", 12) << "Date\n";
+    int rows = 0;
+    while (getline(in, line)) {
+        line = Utils::trim(line);
+        if (line.empty()) continue;
+        string p[6];
+        int n = Utils::split(line, '|', p, 6);
+        if (n < 6) throw FileException("Leader/score board file is corrupted.");
+        cout << Utils::pad(p[0], 14) << Utils::pad(p[1], 7) << Utils::pad(p[2], 6)
+            << Utils::pad(p[3], 6) << Utils::pad(p[4], 12) << p[5] << "\n";
+        rows += 1;
+    }
+    if (rows == 0) cout << "No games played yet.\n";
+    cout << "============================================\n";
+}
