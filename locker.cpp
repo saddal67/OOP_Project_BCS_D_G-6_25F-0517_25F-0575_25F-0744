@@ -927,3 +927,62 @@ void GameEngine::mainMenuStep() {
     case MENU_EXIT:       state = STATE_EXIT; running = false; break;
     }
 }
+
+
+
+void GameEngine::showAbout() const {
+    ifstream in("about.txt");
+    if (!in) throw FileException("Cannot open about.txt. File not found.");
+    string line;
+    cout << "\n";
+    while (getline(in, line)) cout << line << "\n";
+}
+
+void GameEngine::showRules() const {
+    cout << "\n================== RULES ==================\n";
+    if (usingDefaultRules) cout << "(rules.txt missing or corrupt, showing default rules)\n";
+    cout << "Max turns            : " << maxTurns << "\n";
+    cout << "Starting credibility : " << startCredibility << "\n";
+    cout << "Every wrong turn     : -" << wrongTurnPenalty << " credibility\n";
+    cout << "Every wrong word     : -" << wrongWordPenalty << " credibility\n";
+    cout << "Win condition        : " << winCondition << "\n";
+    cout << "Lose condition       : " << loseCondition << "\n";
+    cout << "\nInterview gates (minimum credibility):\n";
+    cout << "  Business Owner 80 | Owner's Child 75 | Partners 50 | PA 35\n";
+    cout << "  Cook, Guard, Servant and all locations: no condition\n";
+    cout << "Viewing the Scrabble board is free and uses no turn.\n";
+    cout << "A wrong turn is: a blocked interview, an incomplete word attempt,\n";
+    cout << "or accusing the wrong person.\n";
+    cout << "===========================================\n";
+}
+
+void GameEngine::newGame() {
+    Utils::clearScreen();
+    cout << "========= THE LOCKER HEIST: NEW GAME =========\n";
+    string name;
+    while (true) {
+        cout << "Enter detective name (no spaces, use _ or . for a space): ";
+        name = Utils::trim(Utils::readLine());
+        if (name.empty()) { cout << "Name cannot be empty.\n"; continue; }
+        if (Utils::hasSpace(name)) { cout << "Name cannot contain spaces.\n"; continue; }
+        break;
+    }
+    cleanupGame();
+    loadRules();
+    if (usingDefaultRules) cout << "(rules.txt missing or corrupt, using default rules)\n";
+    try {
+        culpritIndex = rand() % SUSPECT_COUNT;
+        detective = new Detective(name, startCredibility);
+        cottage = new Cottage();
+        scrabble = new Scrabble();
+        cottage->loadFromFile("locations.txt", culpritIndex);
+        loadCharacters("characters.txt");
+        loadClue("clue.txt");
+    }
+    catch (...) {
+        cleanupGame();
+        throw;
+    }
+    state = STATE_PLAYING;
+    cout << "A culprit has been secretly chosen. The game begins!\n";
+}
