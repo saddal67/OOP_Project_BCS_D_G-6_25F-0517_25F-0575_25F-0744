@@ -1157,3 +1157,58 @@ void GameEngine::accuse() {
         throw WrongAccusationException(accused->getName() + " is innocent!");
     }
 }
+void GameEngine::quitGame() {
+    if (Utils::askYesNo("Quit to the main menu? This game will not be saved. (Y/N): ")) {
+        state = STATE_MENU;
+        Utils::clearScreen();
+    }
+}
+
+void GameEngine::checkEnd() {
+    if (state != STATE_PLAYING || detective == NULL) return;
+    if (detective->getCredibility() <= 0) {
+        cout << "\nYour credibility has run out!\n";
+        endGame(false);
+    }
+    else if (detective->getTurns() >= maxTurns) {
+        cout << "\nYou have run out of turns!\n";
+        endGame(false);
+    }
+}
+
+void GameEngine::endGame(bool won) {
+    state = won ? STATE_WON : STATE_LOST;
+    Character* culprit = findCulprit();
+    string culpritName = culprit->getName();
+    string culpritRole = culprit->getRole();
+    int turnsLeft = maxTurns - detective->getTurns();
+    if (turnsLeft < 0) turnsLeft = 0;
+
+    cout << "\n==============================================================\n";
+    cout << "  " << detective->getName() << (won ? " WIN!" : " LOSE!") << "\n";
+    cout << "  Final credibility: " << detective->getCredibility()
+        << " | Turns used: " << detective->getTurns()
+        << " | Culprit: " << culpritRole << " " << culpritName << "\n";
+    cout << "==============================================================\n";
+
+    state = STATE_MENU;
+    if (scoreBoard != NULL) {
+        scoreBoard->addScore(detective->getName(), won, detective->getCredibility(),
+            turnsLeft, Utils::spaceToUnderscore(culpritRole));
+    }
+    Utils::pause();
+    Utils::clearScreen();
+}
+
+void GameEngine::onError(const GameException& e) {
+    if (detective == NULL || state != STATE_PLAYING) return;
+    if (e.usesTurn()) detective->useTurn();
+    int pen = 0;
+    if (e.getPenaltyType() == PENALTY_TURN) pen = wrongTurnPenalty;
+    else if (e.getPenaltyType() == PENALTY_WORD) pen = wrongWordPenalty;
+    if (pen > 0) {
+        detective->loseCredibility(pen);
+        cout << "Wrong step! -" << pen << " credibility.\n";
+    }
+    checkEnd();
+}
