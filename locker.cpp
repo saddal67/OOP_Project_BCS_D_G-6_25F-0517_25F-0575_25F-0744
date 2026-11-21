@@ -986,3 +986,174 @@ void GameEngine::newGame() {
     state = STATE_PLAYING;
     cout << "A culprit has been secretly chosen. The game begins!\n";
 }
+
+void GameEngine::showStatus() const {
+    cout << "Credibility: " << detective->getCredibility()
+        << " | Turns used: " << detective->getTurns() << " / " << maxTurns << "\n";
+    cout << "Rack Word 1: ";
+    detective->getRack(WORD_1).display();
+    cout << "\nRack Word 2: ";
+    detective->getRack(WORD_2).display();
+    cout << "\n" << *scrabble;
+}
+
+void GameEngine::gameStep() {
+    checkEnd();
+    if (state != STATE_PLAYING) return;
+
+    cout << "\n==== TURN " << (detective->getTurns() + 1) << " ====\n";
+    showStatus();
+    cout << "\n==== Game Menu ====\n";
+    cout << "[1] Visit a Location\n[2] Interview a Person\n[3] View Scrabble Board (free, no turn)\n";
+    cout << "[4] Form a Word\n[5] Accuse a Suspect\n[6] Quit\n";
+    int choice = Utils::readInt("Choice: ", 1, 6);
+    switch (choice) {
+    case 1: visitLocation(); break;
+    case 2: interview(); break;
+    case 3: cout << "\n" << *scrabble; break;
+    case 4: formWord(); break;
+    case 5: accuse(); break;
+    case 6: quitGame(); break;
+    }
+    checkEnd();
+}
+
+void GameEngine::visitLocation() {
+    cout << "\n====== Location Menu ======\n";
+    cottage->displayLocations();
+    cout << "===========================\n";
+    int pick = Utils::readInt("Pick: ", 1, cottage->getLocationCount()) - 1;
+    string name = cottage->getLocationName(pick);
+
+    if (cottage->isSearched(pick)) {
+        cout << "\nYou have already searched the " << name << ".\n";
+        if (!Utils::askYesNo("Search again? (Y/N): ")) return;
+        detective->useTurn();
+        Clue c = cottage->getClue(pick);
+        cout << "Letter " << c.clueLetter << " collected at position " << c.cluePosition << " of Word 1.\n";
+        return;
+    }
+
+    cout << "\nYou have NOT searched the " << name << " yet.\n";
+    if (!Utils::askYesNo("Search? (Y/N): ")) return;
+    Clue c = cottage->getClue(pick);
+    scrabble->placeLetter(c);                                   // may throw
+    detective->getRack(c.clueRow).addTile(c.clueLetter, c.cluePosition);
+    cottage->markSearched(pick);
+    detective->useTurn();
+    cout << "Letter " << c.clueLetter << " collected at position " << c.cluePosition << " of Word 1.\n";
+    cout << "Letter has been placed.\n";
+}
+
+void GameEngine::interview() {
+    cout << "\n====== Character Menu ======\n";
+    for (int i = 0; i < CHAR_COUNT; i += 1) {
+        cout << "[" << (i + 1) << "] " << *characters[i] << " "
+            << (characters[i]->isInterviewed() ? "Interviewed" : "NOT Interviewed") << "\n";
+    }
+    cout << "============================\n";
+    int pick = Utils::readInt("Pick: ", 1, CHAR_COUNT) - 1;
+    Character* who = characters[pick];
+
+    if (who->isInterviewed()) {
+        cout << "\nYou have already interviewed " << who->getName() << ".\n";
+        if (!Utils::askYesNo("Interview again? (Y/N): ")) return;
+        detective->useTurn();
+        who->display();
+        Clue c = who->getClue();
+        cout << "Letter " << c.clueLetter << " collected at position " << c.cluePosition << " of Word 2.\n";
+        return;
+    }
+
+    // Credibility gate, resolved through the virtual requiredCredibility()
+    if (who->requiredCredibility() > detective->getCredibility()) {
+        throw LowCredibilityException(who->getName() + " refuses to talk. You need credibility of at least "
+            + Utils::intToString(who->requiredCredibility()) + ".");
+    }
+
+    cout << "\nYou have NOT interviewed " << who->getName() << " yet.\n";
+    if (!Utils::askYesNo("Interview? (Y/N): ")) return;
+    who->display();                                             // polymorphic call
+    Clue c = who->getClue();
+    scrabble->placeLetter(c);                                   // may throw
+    detective->getRack(c.clueRow).addTile(c.clueLetter, c.cluePosition);
+    who->interviewed = true;                                    // friend access
+    detective->useTurn();
+    cout << "Letter " << c.clueLetter << " collected at position " << c.cluePosition << " of Word 2.\n";
+    cout << "Placed.\n";
+}
+
+void GameEngine::formWord() {
+    cout << "\n[1] Word 1 (Locations, 7 letters)\n[2] Word 2 (Characters, 8 letters)\n";
+    int r = Utils::readInt("Row: ", 1, 2) - 1;
+    WordRow row = (r == 0) ? WORD_1 : WORD_2;
+
+    if (detective->isSolved(row)) {
+        cout << "That word is already solved: " << detective->getSolved(row) << "\n";
+        return;
+    }
+    if (!scrabble->isRowComplete(row)) {
+        throw IncompleteRowException("This row is not completely filled yet.");
+    }
+    detective->useTurn();
+
+    while (true) {
+        cout << "Type the word: ";
+        cin >> *scrabble;                       // overloaded extraction
+        cin.ignore(10000, '\n');
+        string guess = scrabble->getLastInput();
+
+        bool correct = false;
+        try {
+            correct = scrabble->checkWord(row, guess);
+        }
+        catch (const InvalidWordException& e) {
+            cout << e.what() << "\n";           // wrong length counts as a wrong word
+        }
+
+        if (correct) {
+            string w = Utils::toUpper(guess);
+            detective->setSolved(row, w);
+            cout << "Correct! " << w << " is complete.\n";
+            if (detective->isSolved(WORD_1) && detective->isSolved(WORD_2)) revealCulprit();
+            return;
+        }
+
+        detective->loseCredibility(wrongWordPenalty);
+        cout << "Wrong word! -" << wrongWordPenalty << " credibility.\n";
+        checkEnd();
+        if (state != STATE_PLAYING) return;
+        if (!Utils::askYesNo("Try again? (Y/N): ")) return;
+    }
+}
+
+void GameEngine::revealCulprit() {
+    delete mergedRack;
+    mergedRack = new TileRack(detective->getRack(WORD_1) + detective->getRack(WORD_2));
+    Character* culprit = findCulprit();
+    cout << "\nBoth words solved. Combined clue: " << mergedRack->toString() << "\n";
+    cout << detective->getSolved(WORD_1) << " + " << detective->getSolved(WORD_2)
+        << " = " << culprit->getNationality() << " => the "
+        << culprit->getRole() << " is the Culprit!\n";
+    cout << "Use option [5] Accuse a Suspect to finish the case.\n";
+}
+
+void GameEngine::accuse() {
+    cout << "\n====== Accuse a Suspect ======\n";
+    for (int i = 1; i < CHAR_COUNT; i += 1) {         // index 0 is the victim, not a suspect
+        cout << "[" << i << "] " << *characters[i] << "\n";
+    }
+    cout << "==============================\n";
+    int pick = Utils::readInt("Pick: ", 1, SUSPECT_COUNT);
+    Character* accused = characters[pick];
+    cout << "Accuse: " << *accused << "\n";
+
+    if (accused->isCulprit) {                         // friend access
+        detective->useTurn();
+        cout << accused->getName() << " is the culprit!\n";
+        endGame(true);
+    }
+    else {
+        throw WrongAccusationException(accused->getName() + " is innocent!");
+    }
+}
