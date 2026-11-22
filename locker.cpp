@@ -40,13 +40,10 @@ istream& operator>>(istream& is, Location& l) {
     return is;
 }
 
-
-
 // ============================================================
 // Utils
 // ============================================================
-string Utils::trim(const string& s) 
-{
+string Utils::trim(const string& s) {
     int start = 0;
     int end = (int)s.length() - 1;
     while (start <= end && isspace((unsigned char)s[start])) start += 1;
@@ -68,9 +65,10 @@ int Utils::split(const string& line, char delim, string parts[], int maxParts) {
         }
     }
     if (count < maxParts) parts[count] = trim(cur);
-    count = count +1;
+    count += 1;
     return count;
 }
+
 
 
 int Utils::toInt(const string& s, bool& ok) {
@@ -92,6 +90,10 @@ int Utils::toInt(const string& s, bool& ok) {
     return (int)(sign * val);
 }
 
+
+
+
+
 string Utils::intToString(int n) {
     if (n == 0) return "0";
     bool neg = n < 0;
@@ -103,6 +105,9 @@ string Utils::intToString(int n) {
     }
     return neg ? "-" + s : s;
 }
+
+
+
 string Utils::toUpper(const string& s) {
     string r = s;
     for (size_t i = 0; i < r.length(); i += 1) r[i] = (char)toupper((unsigned char)r[i]);
@@ -158,6 +163,8 @@ int Utils::readInt(const string& prompt, int lo, int hi) {
 
 
 
+
+
 bool Utils::askYesNo(const string& prompt) {
     while (true) {
         cout << prompt;
@@ -168,11 +175,7 @@ bool Utils::askYesNo(const string& prompt) {
     }
 }
 
-
-
-
-void Utils::clearScreen() 
-{
+void Utils::clearScreen() {
 #ifdef _WIN32
     system("cls");
 #else
@@ -180,8 +183,7 @@ void Utils::clearScreen()
 #endif
 }
 
-void Utils::pause() 
-{
+void Utils::pause() {
     cout << "\nPress Enter to continue...";
     readLine();
 }
@@ -202,8 +204,6 @@ void Utils::makeDirectory(const string& name) {
 #endif
     system(cmd.c_str());
 }
-
-
 
 // ============================================================
 // TileRack
@@ -237,14 +237,13 @@ TileRack& TileRack::operator=(const TileRack& other) {
         delete[] positions;
         tiles = nt;
         positions = np;
-
         capacity = other.capacity;
         count = other.count;
-
     }
-    
     return *this;
 }
+
+
 
 
 
@@ -287,6 +286,10 @@ void TileRack::removeTile(char letter) {
     positions[count - 1] = 0;
     count -= 1;
 }
+
+
+
+
 bool TileRack::isFull() const { return count >= capacity; }
 bool TileRack::isEmpty() const { return count == 0; }
 int TileRack::getCount() const { return count; }
@@ -330,15 +333,14 @@ TileRack TileRack::operator+(const TileRack& other) const {
 
 
 
+
+
 ostream& operator<<(ostream& os, const TileRack& r) {
     os << "Rack: ";
     if (r.count == 0) os << "(empty)";
     else os << r.toString();
-    
-
     return os;
 }
-
 
 // ============================================================
 // Character hierarchy
@@ -347,6 +349,7 @@ Character::Character(const string& name, const string& role, const string& nat)
     : isCulprit(false), interviewed(false),
     characterName(name), nationality(nat), characterRole(role) {
 }
+
 Character::~Character() {}
 
 int Character::requiredCredibility() const { return 0; }
@@ -358,6 +361,7 @@ Clue Character::getClue() const {
     c.clueRow = WORD_2;
     return c;
 }
+
 string Character::getName() const { return characterName; }
 string Character::getRole() const { return characterRole; }
 string Character::getNationality() const { return nationality; }
@@ -383,10 +387,7 @@ void Victim::display() const {
     cout << "  \"Whoever did this knew exactly which book opens the locker.\"\n";
 }
 
-int Victim::requiredCredibility() const 
-{ 
-    return 80;
-}
+int Victim::requiredCredibility() const { return 80; }
 
 Clue Victim::getClue() const {
     Clue c;
@@ -397,11 +398,8 @@ Clue Victim::getClue() const {
 }
 
 Suspect::Suspect(const string& name, const string& role, const string& nat, char letter, int pos)
-    : Character(name, role, nat), letterClueChar(letter), boardPosChar(pos), clueRowChar(WORD_2)
-     {
+    : Character(name, role, nat), letterClueChar(letter), boardPosChar(pos), clueRowChar(WORD_2) {
 }
-
-
 
 Clue Suspect::getClue() const {
     Clue c;
@@ -410,6 +408,12 @@ Clue Suspect::getClue() const {
     c.clueRow = clueRowChar;
     return c;
 }
+
+
+
+
+
+
 
 void Partner::display() const {
     cout << "  " << characterName << " (" << nationality << "), a business partner of the owner.\n";
@@ -442,6 +446,9 @@ void OwnersChild::display() const {
     cout << "  " << characterName << " (" << nationality << "), the owner's teenage child, visibly panicked.\n";
     cout << "  \"I did not do anything! Please, I just want this to end.\"\n";
 }
+
+
+
 
 
 int OwnersChild::requiredCredibility() const { return 75; }
@@ -482,8 +489,6 @@ string Detective::getSolved(WordRow row) const {
     return row == WORD_1 ? solved1 : solved2;
 }
 
-
-
 // ============================================================
 // Scrabble
 // ============================================================
@@ -522,8 +527,7 @@ Scrabble::Scrabble() : grid(NULL), lastInput("") {
 Scrabble::Scrabble(const Scrabble& other) : grid(NULL) { copyFrom(other); }
 
 Scrabble& Scrabble::operator=(const Scrabble& other) {
-    if (this != &other) 
-    {
+    if (this != &other) {
         release();
         copyFrom(other);
     }
@@ -599,6 +603,9 @@ istream& operator>>(istream& is, Scrabble& s) {
     is >> s.lastInput;
     return is;
 }
+
+
+
 
 // ============================================================
 // Cottage
@@ -687,7 +694,6 @@ void Cottage::displayLocations() const {
     }
 }
 
-
 // ============================================================
 // ScoreBoard
 // ============================================================
@@ -737,8 +743,6 @@ void ScoreBoard::display() const {
     cout << "============================================\n";
 }
 
-
-
 // ============================================================
 // GameEngine (Singleton)
 // ============================================================
@@ -783,6 +787,10 @@ void GameEngine::cleanupGame() {
     }
 }
 
+
+
+
+
 // Rules fall back to defaults if the file is missing or corrupt
 void GameEngine::loadRules() {
     maxTurns = 25; startCredibility = 100; wrongTurnPenalty = 5; wrongWordPenalty = 10;
@@ -820,7 +828,6 @@ void GameEngine::loadRules() {
     maxTurns = mt; startCredibility = sc; wrongTurnPenalty = wt; wrongWordPenalty = ww;
     winCondition = win; loseCondition = lose;
 }
-
 
 Character* GameEngine::createCharacter(const string& name, const string& role,
     const string& nat, char letter, int pos) {
@@ -864,6 +871,7 @@ void GameEngine::loadCharacters(const string& file) {
     if (findCulprit() == NULL)
         throw FileException(file + " is corrupted: culprit role not found.");
 }
+
 void GameEngine::loadClue(const string& file) {
     ifstream in(file.c_str());
     if (!in) throw FileException("Cannot open " + file + ". File not found.");
@@ -927,6 +935,8 @@ void GameEngine::mainMenuStep() {
     case MENU_EXIT:       state = STATE_EXIT; running = false; break;
     }
 }
+
+
 
 
 
@@ -1157,6 +1167,7 @@ void GameEngine::accuse() {
         throw WrongAccusationException(accused->getName() + " is innocent!");
     }
 }
+
 void GameEngine::quitGame() {
     if (Utils::askYesNo("Quit to the main menu? This game will not be saved. (Y/N): ")) {
         state = STATE_MENU;
