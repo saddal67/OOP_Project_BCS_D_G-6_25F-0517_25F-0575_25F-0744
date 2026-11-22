@@ -7,15 +7,19 @@ int main()
 
     engine->showTitle();
 
-    while (engine->isRunning()) {
-        try {
+    while (engine->isRunning()) 
+	{
+        try 
+		{
             engine->step();
         }
-        catch (const GameException& e) {
+        catch (const GameException& e) 
+		{
             cout << "\n[!] " << e.what() << "\n";
             engine->onError(e);          // applies the credibility and turn penalty if any
         }
-        catch (...) {
+        catch (...) 
+		{
             cout << "\n[!] Unexpected error. Shutting down.\n";
             engine->stop();
         }
