@@ -1,12 +1,29 @@
-#include<iostream>
+#include "locker.h"
 
-using namespace std;
+int main() 
+{
+    ScoreBoard board("leader/scoreBoard.txt");               // owned by main
+    GameEngine* engine = GameEngine::getInstance(&board);    // Singleton, board is only associated
 
-int main()
- {
+    engine->showTitle();
 
-	cout<<"ye moiz ki taraf";
-	cout<<"moiz 	";
+    while (engine->isRunning()) {
+        try {
+            engine->step();
+        }
+        catch (const GameException& e) {
+            cout << "\n[!] " << e.what() << "\n";
+            engine->onError(e);          // applies the credibility and turn penalty if any
+        }
+        catch (...) {
+            cout << "\n[!] Unexpected error. Shutting down.\n";
+            engine->stop();
+        }
+    }
 
-	return 0;
+    GameEngine::destroyInstance();
+    cout << "\nGoodbye, Detective.\n";
+
+    system("pause");
+    return 0;
 }
