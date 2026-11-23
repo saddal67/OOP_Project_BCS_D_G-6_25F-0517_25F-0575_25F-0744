@@ -921,9 +921,9 @@ void GameEngine::step() {
 
 void GameEngine::mainMenuStep() {
     cout << "\n========= THE LOCKER HEIST: MAIN MENU =========\n";
-    cout << "  [1] New Game\n  [2] View Leader/Score Board\n  [3] About\n  [4] Rules\n  [5] Exit\n";
+    cout << "  [1] New Game\n  [2] View Leader/Score Board\n  [3] About\n  [4] Rules\n  [5] Exit\n  [6] Credits\n";
     cout << "===============================================\n";
-    int c = Utils::readInt("Choice: ", 1, 5);
+    int c = Utils::readInt("Choice: ", 1, 6);
     switch ((MenuChoice)c) {
     case MENU_NEW_GAME:   newGame(); break;
     case MENU_SCOREBOARD:
@@ -933,6 +933,7 @@ void GameEngine::mainMenuStep() {
     case MENU_ABOUT:      showAbout(); break;
     case MENU_RULES:      showRules(); break;
     case MENU_EXIT:       state = STATE_EXIT; running = false; break;
+    case MENU_CREDITS:    showCredits(); break;
     }
 }
 
@@ -947,6 +948,22 @@ void GameEngine::showAbout() const {
     cout << "\n";
     while (getline(in, line)) cout << line << "\n";
 }
+
+
+
+
+void GameEngine::showCredits() const {
+    cout << "\n================== CREDITS ==================\n";
+    cout << "  Developed by:\n\n";
+    cout << "  1. Moiz Ahmad   25F-0774 \n";
+    cout << "  2. Muhammad Abdullah   25F-0517\n";
+    cout << "  3. Ahmad Hassan 25F-0575\n";
+    cout << "=============================================\n";
+}
+
+
+
+
 
 void GameEngine::showRules() const {
     cout << "\n================== RULES ==================\n";

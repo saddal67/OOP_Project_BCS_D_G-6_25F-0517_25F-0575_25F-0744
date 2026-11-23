@@ -1,0 +1,2 @@
+Detective|Result|Credibility|Turns_Left|Culprit|Date
+Abdullah|WIN|90|07|Cook|23-11-26
