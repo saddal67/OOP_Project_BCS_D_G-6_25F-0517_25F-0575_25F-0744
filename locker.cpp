@@ -929,10 +929,10 @@ Character* GameEngine::findCulprit() const {
 }
 
 void GameEngine::showTitle() const {
-    cout << "============================================================\n";
+    cout << "************************************************************\n";
     cout << "                     THE LOCKER HEIST\n";
     cout << "          A Detective Game backed by OOP Principles\n";
-    cout << "============================================================\n";
+    cout << "************************************************************\n";
     cout << "A locker hidden behind a bookshelf was robbed during a party.\n";
     cout << "Eight people were present. One of them is the culprit.\n";
     cout << "You are the detective. Find the clues before credibility runs out.\n";
