@@ -1,3 +1,4 @@
 Detective|Result|Credibility|Turns_Left|Culprit|Date
 Abdullah|WIN|90|07|Cook|23-11-26
 ghhm|WIN|100|16|PA|23-11-26
+abdullah_sddal|WIN|85|21|Child|24-11-26

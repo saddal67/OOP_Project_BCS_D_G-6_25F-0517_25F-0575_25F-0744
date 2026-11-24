@@ -116,12 +116,14 @@ int Utils::toInt(const string& s, bool& ok)
 
 
 
-string Utils::intToString(int n) {
+string Utils::intToString(int n)
+ {
     if (n == 0) return "0";
     bool neg = n < 0;
     if (neg) n = -n;
     string s = "";
-    while (n > 0) {
+    while (n > 0) 
+    {
         s = (char)('0' + n % 10) + s;
         n /= 10;
     }
@@ -130,7 +132,8 @@ string Utils::intToString(int n) {
 
 
 
-string Utils::toUpper(const string& s) {
+string Utils::toUpper(const string& s) 
+{
     string r = s;
     for (size_t i = 0; i < r.length(); i += 1) r[i] = (char)toupper((unsigned char)r[i]);
     return r;
@@ -204,6 +207,7 @@ void Utils::clearScreen() {
     system("clear");
 #endif
 }
+
 
 void Utils::pause() {
     cout << "\nPress Enter to continue...";
