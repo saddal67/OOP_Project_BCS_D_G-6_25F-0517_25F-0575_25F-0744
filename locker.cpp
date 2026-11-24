@@ -22,7 +22,7 @@ istream& operator>>(istream& is, Tile& t)
     }
     return is;
 }
-
+    
 bool operator==(const Tile& a, const Tile& b) 
 {
     return toupper((unsigned char)a.tileLetter) == toupper((unsigned char)b.tileLetter);
@@ -51,21 +51,28 @@ istream& operator>>(istream& is, Location& l) {
 string Utils::trim(const string& s) {
     int start = 0;
     int end = (int)s.length() - 1;
-    while (start <= end && isspace((unsigned char)s[start])) start += 1;
+    while 
+    (start <= end && isspace((unsigned char)s[start])) start += 1;
     while (end >= start && isspace((unsigned char)s[end])) end -= 1;
     return s.substr(start, end - start + 1);
 }
 
-int Utils::split(const string& line, char delim, string parts[], int maxParts) {
+
+
+int Utils::split(const string& line, char delim, string parts[], int maxParts) 
+{
     int count = 0;
     string cur = "";
-    for (size_t i = 0; i < line.length(); i += 1) {
-        if (line[i] == delim) {
+    for (size_t i = 0; i < line.length(); i += 1) 
+    {
+        if (line[i] == delim) 
+        {
             if (count < maxParts) parts[count] = trim(cur);
             count += 1;
             cur = "";
         }
-        else {
+        else 
+        {
             cur += line[i];
         }
     }
@@ -76,17 +83,27 @@ int Utils::split(const string& line, char delim, string parts[], int maxParts) {
 
 
 
-int Utils::toInt(const string& s, bool& ok) {
+int Utils::toInt(const string& s, bool& ok) 
+{
     string t = trim(s);
     ok = false;
     if (t.empty()) return 0;
     int i = 0;
     int sign = 1;
-    if (t[0] == '-') { sign = -1; i = 1; }
-    else if (t[0] == '+') { i = 1; }
-    if (i >= (int)t.length()) return 0;
+    if (t[0] == '-')
+     { 
+        sign = -1;
+         i = 1; 
+        }
+    else if (t[0] == '+') 
+    {
+         i = 1;
+         }
+    if (i >= (int)t.length()) 
+    return 0;
     long val = 0;
-    for (; i < (int)t.length(); i += 1) {
+    for (; i < (int)t.length(); i += 1) 
+    {
         if (t[i] < '0' || t[i] > '9') return 0;
         val = val * 10 + (t[i] - '0');
         if (val > 100000) return 0;
